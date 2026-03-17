@@ -29,14 +29,15 @@ Implement the 5-stage AI Research Skill Architecture as a new pipeline in the ex
 
 ---
 
-## Phase 2: Claude Max + LLM Setup (Current Sprint)
+## Phase 2: Claude Max + LLM Setup ✅ (Done)
 
-### 2.1 Claude Max OAuth token integration
-- [ ] Run `claude setup-token` to generate OAuth token
-- [ ] Set `CLAUDE_CODE_OAUTH_TOKEN` in `.env`
-- [ ] Update `src/utils/llm.py` to support OAuth token authentication (via `claude_agent_sdk` or liteLLM)
-- [ ] Verify LLM calls route through Max subscription (no API key billing)
-- [ ] Add fallback to `ANTHROPIC_API_KEY` if OAuth token not available
+### 2.1 Claude Max setup token integration
+- [x] Created `.env` with `CLAUDE_CODE_OAUTH_TOKEN` placeholder
+- [x] Updated `.env.example` with setup token as primary auth method
+- [x] Updated `src/llm/models.py` — Anthropic provider checks `CLAUDE_CODE_OAUTH_TOKEN` first, falls back to `ANTHROPIC_API_KEY`
+- [x] Changed default model from GPT-4.1/OpenAI to claude-sonnet-4-20250514/Anthropic in `call_llm`, `get_agent_model_config`, and `main.py`
+- [x] Added Claude Sonnet 4 to `api_models.json` and moved Claude models to top of list
+- [ ] **USER ACTION:** Run `claude setup-token` (outside Claude Code) and paste token into `.env`
 
 ### 2.2 Dependencies
 - [x] Add `youtube-transcript-api` to pyproject.toml
@@ -44,8 +45,8 @@ Implement the 5-stage AI Research Skill Architecture as a new pipeline in the ex
 - [x] Add `duckdb` to pyproject.toml
 - [x] Add `pdfplumber` to pyproject.toml
 - [x] Add `beautifulsoup4` for Substack parsing
-- [ ] Add `yt-dlp` to pyproject.toml (full video download for visual analysis)
-- [ ] Add `opencv-python` to pyproject.toml (frame extraction from video)
+- [x] Add `yt-dlp` to pyproject.toml (full video download for visual analysis)
+- [x] Add `opencv-python` to pyproject.toml (frame extraction from video)
 
 ---
 

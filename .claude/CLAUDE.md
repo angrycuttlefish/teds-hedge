@@ -108,8 +108,7 @@ poetry run pytest
 | Layer | Technology |
 |-------|-----------|
 | LLM Orchestration | LangGraph, LangChain |
-| LLM Provider (primary) | Claude Max subscription (OAuth token) |
-| LLM Fallback | Anthropic API key |
+| LLM Provider (default) | Claude Max (setup token) → Anthropic API key fallback |
 | Market Data | yfinance (stocks, options, fundamentals) |
 | Database | DuckDB (local analytics, research persistence) |
 | Backend | FastAPI, SQLAlchemy, Alembic |
@@ -123,16 +122,23 @@ poetry run pytest
 
 ## LLM Configuration
 
-### Claude Max (Primary — No API Costs)
-The pipeline uses your Claude Max subscription via OAuth token. No per-token billing.
+### Claude Max via Setup Token (Primary — No Extra API Costs)
+The pipeline uses your Claude Max subscription via the setup token. No per-token billing.
 
 ```bash
-claude setup-token                        # Generate OAuth token
-export CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...  # Or add to .env
+# Generate the setup token (run outside of Claude Code)
+claude setup-token
+
+# Add to .env
+CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...
 ```
 
+The system checks for `CLAUDE_CODE_OAUTH_TOKEN` first, then falls back to `ANTHROPIC_API_KEY`.
+
 ### Fallback: Anthropic API Key
-Set `ANTHROPIC_API_KEY` in `.env` if OAuth token is not available.
+If no setup token is available, set `ANTHROPIC_API_KEY` in `.env`.
+
+Other providers (OpenAI, Groq, etc.) are also supported — pass `--model` and `--provider` at the CLI.
 
 ### Agent LLM calls
 All agent LLM calls go through `src/utils/llm.py:call_llm()` which handles:
@@ -208,10 +214,10 @@ Zero-config embedded analytics database for persisting research runs.
 ## Environment Variables
 
 Required in `.env`:
-- `CLAUDE_CODE_OAUTH_TOKEN` — Claude Max OAuth token (primary, run `claude setup-token`)
+- `CLAUDE_CODE_OAUTH_TOKEN` — Claude Max setup token (run `claude setup-token` outside of Claude Code)
 
 Optional:
-- `ANTHROPIC_API_KEY` — Fallback if OAuth token not available
+- `ANTHROPIC_API_KEY` — Fallback if setup token not available
 - `FINANCIAL_DATASETS_API_KEY` — For stock data (legacy, yfinance preferred)
 - `OPENAI_API_KEY`, `GROQ_API_KEY`, etc. — For other LLM providers
 
