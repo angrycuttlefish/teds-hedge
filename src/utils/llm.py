@@ -35,7 +35,7 @@ def call_llm(
         model_name, model_provider = get_agent_model_config(state, agent_name)
     else:
         # Use system defaults when no state or agent_name is provided
-        model_name = "claude-sonnet-4-20250514"
+        model_name = "claude-sonnet-4-6"
         model_provider = "Anthropic"
 
     # Extract API keys from state if available
@@ -137,7 +137,7 @@ def get_agent_model_config(state, agent_name):
             return model_name, model_provider.value if hasattr(model_provider, 'value') else str(model_provider)
     
     # Fall back to global configuration (system defaults)
-    model_name = state.get("metadata", {}).get("model_name") or "claude-sonnet-4-20250514"
+    model_name = state.get("metadata", {}).get("model_name") or "claude-sonnet-4-6"
     model_provider = state.get("metadata", {}).get("model_provider") or "Anthropic"
     
     # Convert enum to string if necessary

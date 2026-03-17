@@ -2,7 +2,7 @@
 
 Usage:
     poetry run python src/research_pipeline.py --transcript path/to/transcript.txt
-    poetry run python src/research_pipeline.py --transcript path/to/transcript.txt --model claude-sonnet-4-20250514
+    poetry run python src/research_pipeline.py --transcript path/to/transcript.txt --model claude-sonnet-4-6
 """
 
 import argparse
@@ -124,7 +124,7 @@ def display_results(final_state: dict):
     console.print(f"\nFull output saved to [bold]{output_path}[/bold]")
 
 
-def run_research_pipeline(transcript: str, model_name: str = "claude-sonnet-4-20250514", model_provider: str = "Anthropic", show_reasoning: bool = False):
+def run_research_pipeline(transcript: str, model_name: str = "claude-sonnet-4-6", model_provider: str = "Anthropic", show_reasoning: bool = False):
     """Run the full 5-stage research pipeline on a transcript."""
     progress.start()
 
@@ -152,7 +152,7 @@ def run_research_pipeline(transcript: str, model_name: str = "claude-sonnet-4-20
 def main():
     parser = argparse.ArgumentParser(description="Research Pipeline: From Podcast Signal to Equity Ideas")
     parser.add_argument("--transcript", type=str, required=True, help="Path to transcript file or raw text")
-    parser.add_argument("--model", type=str, default="claude-sonnet-4-20250514", help="LLM model to use (default: claude-sonnet-4-20250514)")
+    parser.add_argument("--model", type=str, default="claude-sonnet-4-6", help="LLM model to use (default: claude-sonnet-4-6)")
     parser.add_argument("--provider", type=str, default="Anthropic", help="LLM provider (default: Anthropic)")
     parser.add_argument("--show-reasoning", action="store_true", help="Show detailed reasoning from each stage")
     parser.add_argument("--output", type=str, default="research_output.json", help="Output file path (default: research_output.json)")

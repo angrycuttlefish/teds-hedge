@@ -123,10 +123,9 @@ Implement the 5-stage AI Research Skill Architecture as a new pipeline in the ex
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| LLM Provider | Claude Max (OAuth token) | User has Max subscription — no extra API costs |
-| LLM Fallback | Anthropic API key | If OAuth token not available |
+| LLM Provider | Anthropic (API key) | Best models for financial analysis |
 | Orchestration | LangGraph | Already used in repo |
-| Model | claude-sonnet-4-20250514 | Best balance of speed/quality for pipeline |
+| Model | claude-sonnet-4-6 | Latest Sonnet — best balance of speed/quality |
 | Market Data | yfinance | Free, no API key needed, covers stocks + options |
 | Database | DuckDB | Fast local analytics DB, zero config, SQL interface |
 | Input Sources | YouTube (video+transcript), Substack, PDF | Primary content formats for research workflow |
@@ -142,17 +141,13 @@ Implement the 5-stage AI Research Skill Architecture as a new pipeline in the ex
 
 ### Required
 ```bash
-# Generate Claude Max OAuth token
-claude setup-token
-# Add to .env:
-# CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...
+# Add to .env — get key at https://console.anthropic.com
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ### Optional
 ```bash
-# .env entries (only if not using Max subscription)
-ANTHROPIC_API_KEY=sk-ant-...
-FINANCIAL_DATASETS_API_KEY=...
+FINANCIAL_DATASETS_API_KEY=...  # Legacy, yfinance preferred
 ```
 
 ### Run the pipeline

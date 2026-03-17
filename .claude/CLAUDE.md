@@ -108,7 +108,7 @@ poetry run pytest
 | Layer | Technology |
 |-------|-----------|
 | LLM Orchestration | LangGraph, LangChain |
-| LLM Provider (default) | Claude Max (setup token) → Anthropic API key fallback |
+| LLM Provider (default) | Anthropic Claude Sonnet 4.6 |
 | Market Data | yfinance (stocks, options, fundamentals) |
 | Database | DuckDB (local analytics, research persistence) |
 | Backend | FastAPI, SQLAlchemy, Alembic |
@@ -122,21 +122,13 @@ poetry run pytest
 
 ## LLM Configuration
 
-### Claude Max via Setup Token (Primary — No Extra API Costs)
-The pipeline uses your Claude Max subscription via the setup token. No per-token billing.
+### Anthropic Claude Sonnet 4.6 (Default)
+The pipeline defaults to `claude-sonnet-4-6` via the Anthropic API.
 
 ```bash
-# Generate the setup token (run outside of Claude Code)
-claude setup-token
-
-# Add to .env
-CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-...
+# Add to .env — get your key at https://console.anthropic.com
+ANTHROPIC_API_KEY=sk-ant-...
 ```
-
-The system checks for `CLAUDE_CODE_OAUTH_TOKEN` first, then falls back to `ANTHROPIC_API_KEY`.
-
-### Fallback: Anthropic API Key
-If no setup token is available, set `ANTHROPIC_API_KEY` in `.env`.
 
 Other providers (OpenAI, Groq, etc.) are also supported — pass `--model` and `--provider` at the CLI.
 
@@ -214,10 +206,9 @@ Zero-config embedded analytics database for persisting research runs.
 ## Environment Variables
 
 Required in `.env`:
-- `CLAUDE_CODE_OAUTH_TOKEN` — Claude Max setup token (run `claude setup-token` outside of Claude Code)
+- `ANTHROPIC_API_KEY` — Anthropic API key (get at https://console.anthropic.com)
 
 Optional:
-- `ANTHROPIC_API_KEY` — Fallback if setup token not available
 - `FINANCIAL_DATASETS_API_KEY` — For stock data (legacy, yfinance preferred)
 - `OPENAI_API_KEY`, `GROQ_API_KEY`, etc. — For other LLM providers
 
@@ -262,4 +253,5 @@ _This section grows over time. Add new entries as they are discovered._
 2. **youtube-transcript-api Python cap:** This package has an upper Python version bound (`<3.15`). Use `python = "<3.15"` marker in pyproject.toml.
 3. **LangGraph state merging:** TypedDict fields with `Annotated[..., merge_dicts]` do a shallow merge. Nested dicts must be handled carefully — don't rely on deep merge behaviour.
 4. **Pydantic v1 vs v2:** LangChain still references Pydantic v1 compatibility layer. On Python 3.14+ you'll see deprecation warnings. These are harmless but noisy.
-5. **`call_llm` defaults:** If no state/agent_name provided, `call_llm` defaults to GPT-4.1/OpenAI. Always pass state and agent_name to use the configured provider.
+5. **`call_llm` defaults:** Always pass state and agent_name to `call_llm` to use the configured provider. Without them it falls back to the system default (currently claude-sonnet-4-6/Anthropic).
+6. **Claude Max setup tokens don't work with the API:** OAuth tokens from `claude setup-token` (sk-ant-oat01-...) only work with claude.ai's internal systems. They return 400 errors when used with `api.anthropic.com`. You must use a regular API key from https://console.anthropic.com.

@@ -1,5 +1,10 @@
 [
   {
+    "display_name": "Claude Sonnet 4.6",
+    "model_name": "claude-sonnet-4-6",
+    "provider": "Anthropic"
+  },
+  {
     "display_name": "Claude Sonnet 4",
     "model_name": "claude-sonnet-4-20250514",
     "provider": "Anthropic"
