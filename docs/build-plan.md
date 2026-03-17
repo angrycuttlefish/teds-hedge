@@ -50,72 +50,94 @@ Implement the 5-stage AI Research Skill Architecture as a new pipeline in the ex
 
 ---
 
-## Phase 3: Input Handling (Next Sprint)
+## Phase 3: Input Handling ✅ (Done)
 
 ### 3.1 YouTube video + transcript ingestion
-- [ ] `src/inputs/youtube.py` — Full YouTube video ingestion (not just audio/transcript)
-- [ ] **Download full video** via `yt-dlp` (not just audio — charts/graphs shown on screen matter)
-- [ ] Extract transcript via `youtube-transcript-api` (captions) as the text layer
-- [ ] **Extract key frames** from video using `opencv-python` — detect scene changes, chart/slide transitions
-- [ ] **Visual analysis** — Send extracted frames to Claude vision for chart/graph/slide interpretation
-- [ ] Combine transcript text + visual descriptions into enriched transcript
-- [ ] Extract video metadata (title, channel, date, duration)
-- [ ] Store downloaded video + extracted frames in local `data/videos/` directory
-- [ ] Configurable: `--skip-video` flag to fall back to transcript-only mode for speed
+- [x] `src/inputs/youtube.py` — Full YouTube video ingestion (not just audio/transcript)
+- [x] **Download full video** via `yt-dlp` (not just audio — charts/graphs shown on screen matter)
+- [x] Extract transcript via `youtube-transcript-api` (captions) as the text layer
+- [x] **Extract key frames** from video using `opencv-python` — detect scene changes, chart/slide transitions
+- [x] **Visual analysis** — Send extracted frames to LLM vision for chart/graph/slide interpretation
+- [x] Combine transcript text + visual descriptions into enriched transcript
+- [x] Extract video metadata (title, channel, date, duration)
+- [x] Store downloaded video + extracted frames in local `data/videos/` directory
+- [x] Configurable: `--skip-video` flag to fall back to transcript-only mode for speed
 
 ### 3.2 Substack post fetcher
-- [ ] `src/inputs/substack.py` — Fetch and parse Substack article from URL
-- [ ] Extract article text, author, date
-- [ ] Handle paywalled content gracefully (error message)
+- [x] `src/inputs/substack.py` — Fetch and parse Substack article from URL
+- [x] Extract article text, author, date
+- [x] Handle paywalled content gracefully (error message)
 
 ### 3.3 PDF reader
-- [ ] `src/inputs/pdf_reader.py` — Extract text from uploaded PDF files
-- [ ] Handle multi-page research reports
-- [ ] Support tables and structured content
+- [x] `src/inputs/pdf_reader.py` — Extract text from uploaded PDF files
+- [x] Handle multi-page research reports
+- [x] Support tables and structured content
 
 ### 3.4 Unified input handler
-- [ ] `src/inputs/__init__.py` — Auto-detect input type (URL vs file path vs raw text)
-- [ ] Route to appropriate fetcher based on input
-- [ ] Normalize all inputs to enriched transcript format (text + visual descriptions)
-- [ ] For YouTube: merge transcript text with visual frame analysis into single enriched document
+- [x] `src/inputs/__init__.py` — Auto-detect input type (URL vs file path vs raw text)
+- [x] Route to appropriate fetcher based on input
+- [x] Normalize all inputs to enriched transcript format (text + visual descriptions)
+- [x] For YouTube: merge transcript text with visual frame analysis into single enriched document
 
 ---
 
-## Phase 4: Market Data + Storage (Future)
+## Phase 4: Market Data + Storage ✅ (Done)
 
 ### 4.1 yfinance integration
-- [ ] `src/data/market_data.py` — Fetch historical stock prices, options chains, fundamentals via yfinance
-- [ ] Replace/supplement Financial Datasets API calls where applicable
-- [ ] Support options data (chains, greeks, IV) for equity screener output
+- [x] `src/data/market_data.py` — Fetch historical stock prices, options chains, fundamentals via yfinance
+- [x] Replace/supplement Financial Datasets API calls where applicable
+- [x] Support options data (chains, greeks, IV) for equity screener output
 
 ### 4.2 DuckDB local database
-- [ ] `src/data/db.py` — DuckDB connection manager
-- [ ] Schema for storing: research runs, themes, theses, equity ideas, market data
-- [ ] Query helpers for retrieving past research
-- [ ] `src/data/schema.sql` — DDL for all tables
+- [x] `src/data/db.py` — DuckDB connection manager
+- [x] Schema for storing: research runs, themes, theses, equity ideas, market data
+- [x] Query helpers for retrieving past research
+- [x] `src/data/schema.sql` — DDL for all tables
 
 ### 4.3 Research persistence
-- [ ] Save each pipeline run to DuckDB with timestamp
-- [ ] Track thesis confidence over time (as new evidence arrives)
-- [ ] Query past runs: "What did we think about AI infrastructure 3 months ago?"
+- [x] Save each pipeline run to DuckDB with timestamp
+- [x] Track thesis confidence over time (as new evidence arrives)
+- [x] Query past runs: "What did we think about AI infrastructure 3 months ago?"
 
 ---
 
-## Phase 5: Deep Research Integration (Future)
+## Phase 5: Deep Research Integration ✅ (Done)
 
-- [ ] Connect Stage 3 output to web search / document retrieval
-- [ ] SEC filing fetcher (EDGAR API)
-- [ ] Earnings call transcript integration
-- [ ] Feed retrieved research back into Stage 4
+- [x] Connect Stage 3 output to web search / document retrieval — `src/data/web_search.py`
+- [x] SEC filing fetcher (EDGAR API) — `src/data/sec_fetcher.py`
+- [ ] Earnings call transcript integration (future — can use SEC 8-K filings)
+- [x] Feed retrieved research back into Stage 4 — all agents now fetch real data and inject into prompts
 
 ---
 
-## Phase 6: Portfolio Integration (Future)
+## Phase 6: Portfolio Integration ✅ (Done)
 
-- [ ] Connect Stage 5 output to existing hedge fund agents
-- [ ] Cross-reference screened equities with portfolio positions
-- [ ] yfinance options data for trade sizing
-- [ ] Feed into risk manager and portfolio manager
+- [x] Connect Stage 5 output to existing hedge fund agents — `src/integrated_pipeline.py`
+- [x] Cross-reference screened equities with portfolio positions
+- [x] yfinance options data for trade sizing — `src/data/market_data.py`
+- [x] Feed into risk manager and portfolio manager
+
+---
+
+## Phase 7: Research Pipeline Web UI ✅ (Done)
+
+### 7.1 Backend SSE endpoint
+- [x] `app/backend/routes/research_pipeline.py` — SSE streaming at `POST /research-pipeline/run`
+- [x] `ResearchPipelineRequest` schema added to `app/backend/models/schemas.py`
+- [x] Content ingestion in background thread with progress events
+- [x] Client disconnect detection and task cancellation
+
+### 7.2 Frontend research view
+- [x] `app/frontend/src/components/research/research-pipeline-view.tsx` — Full pipeline UI
+- [x] `app/frontend/src/services/research-api.ts` — SSE client service
+- [x] Extended tab system with `'research'` tab type
+- [x] "Research Pipeline" button in left sidebar
+- [x] Vertical stepper with animated status indicators (idle/running/complete/error)
+- [x] Results display: Top Picks, Themes, Thesis Confidence bars, Equity Ideas table
+
+### 7.3 Agent tool integration
+- [x] All 5 research agents now fetch real data (yfinance, SEC, web search) before LLM calls
+- [x] Agent prompts include role context, available data descriptions, and quality standards
 
 ---
 
@@ -149,19 +171,31 @@ ANTHROPIC_API_KEY=sk-ant-...    # For Anthropic Claude models
 FINANCIAL_DATASETS_API_KEY=...  # Legacy, yfinance preferred
 ```
 
-### Run the pipeline
+### Run the research pipeline
 ```bash
 # From YouTube video
-poetry run python src/research_pipeline.py --transcript "https://youtube.com/watch?v=..."
+poetry run python src/research_pipeline.py --input "https://youtube.com/watch?v=..."
 
 # From Substack post
-poetry run python src/research_pipeline.py --transcript "https://example.substack.com/p/..."
+poetry run python src/research_pipeline.py --input "https://example.substack.com/p/..."
 
 # From PDF file
-poetry run python src/research_pipeline.py --transcript path/to/report.pdf
+poetry run python src/research_pipeline.py --input path/to/report.pdf
 
 # From text file
-poetry run python src/research_pipeline.py --transcript path/to/transcript.txt
+poetry run python src/research_pipeline.py --input path/to/transcript.txt
+
+# YouTube transcript-only mode (skip video download)
+poetry run python src/research_pipeline.py --input "https://youtube.com/watch?v=..." --skip-video
+```
+
+### Run the integrated pipeline (Research → Trading)
+```bash
+# Research a YouTube video, then run trading analysis on identified tickers
+poetry run python src/integrated_pipeline.py --input "https://youtube.com/watch?v=..." --initial-cash 500000
+
+# Research a PDF report, then trade
+poetry run python src/integrated_pipeline.py --input path/to/report.pdf --max-tickers 5
 ```
 
 ---
@@ -172,28 +206,42 @@ src/
 ├── agents/
 │   └── research/
 │       ├── __init__.py
-│       ├── podcast_signal_extractor.py    ✅
-│       ├── hedge_fund_analyst.py          ✅
-│       ├── deep_research_synthesizer.py   ✅
-│       ├── research_consolidator.py       ✅
-│       └── equity_screener.py             ✅
-├── inputs/                                🔲 Phase 3
-│   ├── __init__.py
+│       ├── podcast_signal_extractor.py    ✅ (with visual analysis awareness)
+│       ├── hedge_fund_analyst.py          ✅ (with yfinance data injection)
+│       ├── deep_research_synthesizer.py   ✅ (with SEC + web search + financials)
+│       ├── research_consolidator.py       ✅ (with price trends + news verification)
+│       └── equity_screener.py             ✅ (with fundamentals + options data)
+├── inputs/                                ✅ Phase 3
+│   ├── __init__.py        (unified input handler + auto-detection)
 │   ├── youtube.py         (yt-dlp + transcript + frame extraction + vision)
-│   ├── substack.py
-│   └── pdf_reader.py
-├── data/                                  🔲 Phase 4
-│   ├── market_data.py    (yfinance)
-│   ├── db.py             (DuckDB)
-│   └── schema.sql
+│   ├── substack.py        (article fetcher + paywall handling)
+│   └── pdf_reader.py      (pdfplumber text + table extraction)
+├── data/                                  ✅ Phase 4 + 5
+│   ├── market_data.py    (yfinance: prices, options, fundamentals)
+│   ├── db.py             (DuckDB connection + research persistence)
+│   ├── schema.sql        (DDL for all tables)
+│   ├── sec_fetcher.py    (SEC EDGAR 10-K/10-Q fetcher)
+│   └── web_search.py     (DuckDuckGo web search for research)
 ├── graph/
 │   └── research_state.py                  ✅
-└── research_pipeline.py                   ✅
+├── research_pipeline.py                   ✅ (with DuckDB persistence)
+└── integrated_pipeline.py                 ✅ Phase 6 (Research → Trading)
+app/
+├── backend/
+│   └── routes/
+│       └── research_pipeline.py           ✅ Phase 7 (SSE streaming endpoint)
+└── frontend/
+    └── src/
+        ├── components/research/
+        │   └── research-pipeline-view.tsx  ✅ Phase 7 (Research pipeline UI)
+        └── services/
+            └── research-api.ts            ✅ Phase 7 (SSE client)
 docs/
 ├── research-workflow-spec.md              ✅
 └── build-plan.md                          ✅
 .claude/
 ├── CLAUDE.md                              ✅
+├── launch.json                            ✅ (dev server configs)
 └── commands/
     ├── next-task.md                       ✅
     ├── status.md                          ✅

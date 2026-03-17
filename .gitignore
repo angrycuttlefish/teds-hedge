@@ -8,6 +8,9 @@ env/
 build/
 develop-eggs/
 dist/
+
+# Local data (DuckDB database, downloaded videos, extracted frames)
+/data/
 downloads/
 eggs/
 .eggs/

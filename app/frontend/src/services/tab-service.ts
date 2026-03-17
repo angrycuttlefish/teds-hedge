@@ -1,10 +1,11 @@
+import { ResearchPipelineView } from '@/components/research/research-pipeline-view';
 import { Settings } from '@/components/settings/settings';
 import { FlowTabContent } from '@/components/tabs/flow-tab-content';
 import { Flow } from '@/types/flow';
 import { ReactNode, createElement } from 'react';
 
 export interface TabData {
-  type: 'flow' | 'settings';
+  type: 'flow' | 'settings' | 'research';
   title: string;
   flow?: Flow;
   metadata?: Record<string, any>;
@@ -21,7 +22,10 @@ export class TabService {
       
       case 'settings':
         return createElement(Settings);
-      
+
+      case 'research':
+        return createElement(ResearchPipelineView);
+
       default:
         throw new Error(`Unsupported tab type: ${tabData.type}`);
     }
@@ -44,6 +48,14 @@ export class TabService {
     };
   }
 
+  static createResearchTab(): TabData & { content: ReactNode } {
+    return {
+      type: 'research' as const,
+      title: 'Research Pipeline',
+      content: TabService.createTabContent({ type: 'research', title: 'Research Pipeline' }),
+    };
+  }
+
   // Restore tab content for persisted tabs (used when loading from localStorage)
   static restoreTabContent(tabData: TabData): ReactNode {
     return TabService.createTabContent(tabData);
@@ -60,7 +72,10 @@ export class TabService {
       
       case 'settings':
         return TabService.createSettingsTab();
-      
+
+      case 'research':
+        return TabService.createResearchTab();
+
       default:
         throw new Error(`Cannot restore unsupported tab type: ${savedTab.type}`);
     }
