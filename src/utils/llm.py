@@ -1,10 +1,12 @@
 """Helper functions for LLM"""
 
 import json
+
 from pydantic import BaseModel
+
+from src.graph.state import AgentState
 from src.llm.models import get_model, get_model_info
 from src.utils.progress import progress
-from src.graph.state import AgentState
 
 
 def call_llm(
@@ -52,7 +54,7 @@ def call_llm(
     if not (model_info and not model_info.has_json_mode()):
         llm = llm.with_structured_output(
             pydantic_model,
-            method="json_mode",
+            method="json_schema",
         )
 
     # Call the LLM with retries
@@ -88,18 +90,27 @@ def create_default_response(model_class: type[BaseModel]) -> BaseModel:
     """Creates a safe default response based on the model's fields."""
     default_values = {}
     for field_name, field in model_class.model_fields.items():
-        if field.annotation == str:
+        annotation = field.annotation
+        if annotation == str:
             default_values[field_name] = "Error in analysis, using default"
-        elif field.annotation == float:
+        elif annotation == float:
             default_values[field_name] = 0.0
-        elif field.annotation == int:
+        elif annotation == int:
             default_values[field_name] = 0
-        elif hasattr(field.annotation, "__origin__") and field.annotation.__origin__ == dict:
-            default_values[field_name] = {}
+        elif annotation == bool:
+            default_values[field_name] = False
+        elif hasattr(annotation, "__origin__"):
+            origin = annotation.__origin__
+            if origin == list:
+                default_values[field_name] = []
+            elif origin == dict:
+                default_values[field_name] = {}
+            else:
+                default_values[field_name] = None
         else:
             # For other types (like Literal), try to use the first allowed value
-            if hasattr(field.annotation, "__args__"):
-                default_values[field_name] = field.annotation.__args__[0]
+            if hasattr(annotation, "__args__"):
+                default_values[field_name] = annotation.__args__[0]
             else:
                 default_values[field_name] = None
 

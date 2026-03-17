@@ -1,29 +1,41 @@
 """Research Pipeline — 5-stage agentic workflow from podcast signal to equity ideas.
 
 Usage:
-    poetry run python src/research_pipeline.py --transcript path/to/transcript.txt
-    poetry run python src/research_pipeline.py --transcript path/to/transcript.txt --model qwen-3.5-9b
+    poetry run python src/research_pipeline.py --input "https://youtube.com/watch?v=..."
+    poetry run python src/research_pipeline.py --input "https://example.substack.com/p/..."
+    poetry run python src/research_pipeline.py --input path/to/report.pdf
+    poetry run python src/research_pipeline.py --input path/to/transcript.txt
+    poetry run python src/research_pipeline.py --input "raw text to analyze..."
 """
 
 import argparse
 import json
 import sys
 
+from colorama import init
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage
 from langgraph.graph import END, StateGraph
-from colorama import init
 from rich.console import Console
+from rich.json import JSON as RichJSON
 from rich.panel import Panel
 from rich.table import Table
-from rich.json import JSON as RichJSON
 
-from src.agents.research.podcast_signal_extractor import podcast_signal_extractor_agent
-from src.agents.research.hedge_fund_analyst import hedge_fund_analyst_agent
-from src.agents.research.deep_research_synthesizer import deep_research_synthesizer_agent
-from src.agents.research.research_consolidator import research_consolidator_agent
+from src.agents.research.deep_research_synthesizer import (
+    deep_research_synthesizer_agent,
+)
 from src.agents.research.equity_screener import equity_screener_agent
+from src.agents.research.hedge_fund_analyst import hedge_fund_analyst_agent
+from src.agents.research.podcast_signal_extractor import podcast_signal_extractor_agent
+from src.agents.research.research_consolidator import research_consolidator_agent
+from src.data.db import (
+    complete_research_run,
+    get_connection,
+    save_full_pipeline_output,
+    save_research_run,
+)
 from src.graph.research_state import ResearchState
+from src.inputs import detect_input_type, ingest, InputType
 from src.utils.progress import progress
 
 load_dotenv()
@@ -128,9 +140,20 @@ def display_results(final_state: dict):
     console.print(f"\nFull output saved to [bold]{output_path}[/bold]")
 
 
-def run_research_pipeline(transcript: str, model_name: str = "qwen-3.5-9b", model_provider: str = "LM Studio", show_reasoning: bool = False):
+def run_research_pipeline(
+    transcript: str,
+    model_name: str = "qwen-3.5-9b",
+    model_provider: str = "LM Studio",
+    show_reasoning: bool = False,
+    input_source: str = "",
+    input_type: str = "",
+):
     """Run the full 5-stage research pipeline on a transcript."""
     progress.start()
+
+    # Create DuckDB run record
+    conn = get_connection()
+    run_id = save_research_run(conn, input_source, input_type, model_name, model_provider, len(transcript))
 
     try:
         workflow = create_research_workflow()
@@ -148,8 +171,19 @@ def run_research_pipeline(transcript: str, model_name: str = "qwen-3.5-9b", mode
             }
         )
 
+        # Persist results to DuckDB
+        data = final_state.get("data", {})
+        save_full_pipeline_output(conn, run_id, data)
+        complete_research_run(conn, run_id)
+        conn.close()
+
         display_results(final_state)
+        console.print(f"[dim]Run ID: {run_id} (saved to DuckDB)[/dim]")
         return final_state
+
+    except Exception:
+        conn.close()
+        raise
 
     finally:
         progress.stop()
@@ -157,30 +191,49 @@ def run_research_pipeline(transcript: str, model_name: str = "qwen-3.5-9b", mode
 
 def main():
     parser = argparse.ArgumentParser(description="Research Pipeline: From Podcast Signal to Equity Ideas")
-    parser.add_argument("--transcript", type=str, required=True, help="Path to transcript file or raw text")
+    parser.add_argument("--input", type=str, required=True, help="YouTube URL, Substack URL, PDF path, text file path, or raw text")
+    # Keep --transcript as alias for backwards compatibility
+    parser.add_argument("--transcript", type=str, help="(deprecated, use --input) Path to transcript file or raw text")
     parser.add_argument("--model", type=str, default="qwen-3.5-9b", help="LLM model to use (default: qwen-3.5-9b)")
     parser.add_argument("--provider", type=str, default="LM Studio", help="LLM provider (default: LM Studio)")
     parser.add_argument("--show-reasoning", action="store_true", help="Show detailed reasoning from each stage")
+    parser.add_argument("--skip-video", action="store_true", help="For YouTube: skip video download, transcript only (faster)")
     parser.add_argument("--output", type=str, default="research_output.json", help="Output file path (default: research_output.json)")
     args = parser.parse_args()
 
-    # Load transcript
-    transcript = args.transcript
-    try:
-        with open(transcript, "r") as f:
-            transcript = f.read()
-        console.print(f"Loaded transcript from [bold]{args.transcript}[/bold] ({len(transcript)} chars)")
-    except FileNotFoundError:
-        # Treat as raw text if not a file
-        console.print(f"Using provided text as transcript ({len(transcript)} chars)")
+    # Resolve input source (--input takes priority, --transcript is fallback)
+    source = args.input or args.transcript
+    if not source:
+        parser.error("--input is required")
+
+    # Detect and display input type
+    input_type = detect_input_type(source)
+    type_labels = {
+        InputType.YOUTUBE: "YouTube Video",
+        InputType.SUBSTACK: "Substack Article",
+        InputType.PDF: "PDF Document",
+        InputType.TEXT_FILE: "Text File",
+        InputType.RAW_TEXT: "Raw Text",
+    }
 
     console.print(
         Panel(
-            f"Model: {args.model} | Provider: {args.provider}",
+            f"Source: {type_labels.get(input_type, input_type)}\nModel: {args.model} | Provider: {args.provider}",
             title="Research Pipeline Configuration",
             style="bold blue",
         )
     )
+    console.print()
+
+    # Ingest content
+    console.print(f"[bold]Ingesting content...[/bold]")
+    try:
+        transcript, actual_type = ingest(source, skip_video=args.skip_video, model_name=args.model, model_provider=args.provider)
+        console.print(f"[green]Ingested {type_labels.get(actual_type, actual_type)}[/green] ({len(transcript)} chars)")
+    except Exception as e:
+        console.print(f"[red]Error ingesting content:[/red] {e}")
+        sys.exit(1)
+
     console.print()
 
     run_research_pipeline(
@@ -188,6 +241,8 @@ def main():
         model_name=args.model,
         model_provider=args.provider,
         show_reasoning=args.show_reasoning,
+        input_source=source,
+        input_type=actual_type,
     )
 
 

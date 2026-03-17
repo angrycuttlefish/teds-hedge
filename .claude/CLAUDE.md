@@ -25,8 +25,8 @@ teds-hedge/
 │   ├── backtester.py        # Backtester CLI entry point
 │   └── research_pipeline.py # Research pipeline CLI entry point
 ├── app/
-│   ├── backend/             # FastAPI REST API
-│   └── frontend/            # React + TypeScript + Vite dashboard
+│   ├── backend/             # FastAPI REST API (trading + research pipeline SSE endpoints)
+│   └── frontend/            # React + TypeScript + Vite dashboard (trading flows + research pipeline)
 ├── docs/                    # Specifications and build plans
 └── .claude/                 # Claude Code instructions (this file)
 ```
@@ -153,19 +153,36 @@ The research pipeline is a 5-stage agentic workflow in `src/agents/research/`:
 4. **Research Consolidator** — Weighs evidence, resolves contradictions
 5. **Equity Screener** — Identifies first/second/third-order equity winners
 
-Entry point: `src/research_pipeline.py`
+Entry points:
+- **CLI**: `src/research_pipeline.py`
+- **Web UI**: Click "Research Pipeline" in the left sidebar of the web app (port 5173)
+- **API**: `POST /research-pipeline/run` with SSE streaming
 
 ### Input sources
 - **YouTube videos** — Paste URL, downloads full video via `yt-dlp`, extracts transcript + key frames. Charts/graphs shown on screen are analyzed via Claude Vision and merged into an enriched transcript. Use `--skip-video` for transcript-only mode.
 - **Substack posts** — Paste URL, auto-fetches article text
 - **PDF files** — Provide file path, extracts text
+- **Raw text** — Paste text directly
+
+### Agent tool integration
+Each research agent fetches real data before its LLM call:
+- **Stage 2** (Analyst): yfinance company info + fundamentals + current prices
+- **Stage 3** (Deep Research): SEC EDGAR 10-K filings + web search + financial statements
+- **Stage 4** (Consolidator): 3-month price trends + fundamentals + recent news
+- **Stage 5** (Screener): current prices + full fundamentals + market cap sizing + options availability
 
 ### Run examples
 ```bash
-poetry run python src/research_pipeline.py --transcript "https://youtube.com/watch?v=..."
-poetry run python src/research_pipeline.py --transcript "https://example.substack.com/p/..."
-poetry run python src/research_pipeline.py --transcript path/to/report.pdf
-poetry run python src/research_pipeline.py --transcript path/to/transcript.txt
+# CLI
+poetry run python src/research_pipeline.py --input "https://youtube.com/watch?v=..."
+poetry run python src/research_pipeline.py --input "https://example.substack.com/p/..."
+poetry run python src/research_pipeline.py --input path/to/report.pdf
+poetry run python src/research_pipeline.py --input path/to/transcript.txt
+
+# Web UI (start both servers)
+poetry run uvicorn app.backend.main:app --reload --port 8000
+npm --prefix app/frontend run dev
+# Then open http://localhost:5173 and click "Research Pipeline"
 ```
 
 ---
@@ -257,3 +274,8 @@ _This section grows over time. Add new entries as they are discovered._
 4. **Pydantic v1 vs v2:** LangChain still references Pydantic v1 compatibility layer. On Python 3.14+ you'll see deprecation warnings. These are harmless but noisy.
 5. **`call_llm` defaults:** Always pass state and agent_name to `call_llm` to use the configured provider. Without them it falls back to the system default (currently qwen-3.5-9b/LM Studio).
 6. **Claude Max setup tokens don't work with the API:** OAuth tokens from `claude setup-token` (sk-ant-oat01-...) only work with claude.ai's internal systems. They return 400 errors when used with `api.anthropic.com`. You must use a regular API key from https://console.anthropic.com.
+7. **LM Studio `json_mode` not supported:** LM Studio's OpenAI-compatible API requires `response_format.type = 'json_schema'`, not `'json_mode'`. Use `method="json_schema"` with LangChain's `with_structured_output()`. This is set in `src/utils/llm.py`.
+8. **LM Studio context window:** LM Studio defaults to `n_ctx=4096` which is too small for long transcripts (40K+ chars). Increase to at least 16384 in LM Studio settings. Error looks like: `Cannot truncate prompt with n_keep (N) >= n_ctx (4096)`.
+9. **`create_default_response` for Pydantic models:** When creating fallback Pydantic instances, `list` type annotations must be handled explicitly (return `[]`). The `__origin__` attribute on `list[X]` is `list`, not the class itself. Same for `dict`.
+10. **SSE streaming pattern:** Both trading and research pipelines use the same SSE pattern: `asyncio.Queue` for progress events, `asyncio.to_thread()` for blocking LLM calls, `request.receive()` for disconnect detection. New pipelines should follow `app/backend/routes/hedge_fund.py` as the reference implementation.
+11. **Frontend tab system:** Adding a new tab type requires changes in 3 places: `TabType` in `tabs-context.tsx`, `createTabContent()`/`restoreTab()` in `tab-service.ts`, and `generateTabId()` in `tabs-context.tsx`.

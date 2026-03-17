@@ -1,6 +1,9 @@
+import { useTabsContext } from '@/contexts/tabs-context';
 import { useFlowManagementTabs } from '@/hooks/use-flow-management-tabs';
 import { useResizable } from '@/hooks/use-resizable';
 import { cn } from '@/lib/utils';
+import { TabService } from '@/services/tab-service';
+import { BookOpen } from 'lucide-react';
 import { ReactNode, useEffect } from 'react';
 import { FlowActions } from './flow-actions';
 import { FlowCreateDialog } from './flow-create-dialog';
@@ -31,6 +34,8 @@ export function LeftSidebar({
     onWidthChange?.(width);
   }, [width, onWidthChange]);
   
+  const { openTab } = useTabsContext();
+
   // Use flow management hook with tabs
   const {
     flows,
@@ -67,6 +72,14 @@ export function LeftSidebar({
         onSave={handleSaveCurrentFlow}
         onCreate={handleCreateNewFlow}
       />
+
+      <button
+        onClick={() => openTab(TabService.createResearchTab())}
+        className="mx-3 mb-3 flex items-center gap-2 px-3 py-2 text-sm text-primary rounded-md hover-item transition-colors"
+      >
+        <BookOpen className="h-4 w-4" />
+        <span>Research Pipeline</span>
+      </button>
       
       <FlowList
         flows={flows}
