@@ -1,18 +1,8 @@
 [
   {
-    "display_name": "Grok 4",
-    "model_name": "grok-4-0709",
-    "provider": "xAI"
-  },
-  {
-    "display_name": "GPT-5.2",
-    "model_name": "gpt-5.2",
-    "provider": "OpenAI"
-  },
-  {
-    "display_name": "GPT-4.1",
-    "model_name": "gpt-4.1",
-    "provider": "OpenAI"
+    "display_name": "Claude Sonnet 4",
+    "model_name": "claude-sonnet-4-20250514",
+    "provider": "Anthropic"
   },
   {
     "display_name": "Claude Sonnet 4.5",
@@ -28,6 +18,21 @@
     "display_name": "Claude Opus 4.5",
     "model_name": "claude-opus-4-5-20251101",
     "provider": "Anthropic"
+  },
+  {
+    "display_name": "Grok 4",
+    "model_name": "grok-4-0709",
+    "provider": "xAI"
+  },
+  {
+    "display_name": "GPT-5.2",
+    "model_name": "gpt-5.2",
+    "provider": "OpenAI"
+  },
+  {
+    "display_name": "GPT-4.1",
+    "model_name": "gpt-4.1",
+    "provider": "OpenAI"
   },
   {
     "display_name": "DeepSeek R1",
