@@ -137,15 +137,196 @@ Produce specific, actionable equity ideas. For each top idea (aim for 3-5):
 
 ---
 
+## Stage 6: Technical Levels & Optimal Entry/Exit
+
+For each top trade idea from Stage 5, determine precise entry and exit prices using historical price analysis.
+
+**Data gathering (use yfinance via Python or WebSearch):**
+- Pull 1-year daily price history (OHLCV) for each ticker
+- Pull 3-month daily price history for near-term structure
+- Note 52-week high, 52-week low, current price, key moving averages (20, 50, 100, 200 SMA/EMA)
+
+**Identify key technical levels:**
+1. **Major support levels** — price zones where the stock has repeatedly bounced (multiple touches = stronger). Look for:
+   - Prior swing lows (daily/weekly)
+   - High-volume price nodes (VWAP anchors, volume profile peaks)
+   - Round numbers / psychological levels
+   - Gap fills
+   - Moving average clusters
+2. **Major resistance levels** — price zones where the stock has repeatedly stalled or reversed. Same criteria as support.
+3. **Recent price structure** — is the stock trending, ranging, or breaking down? Where are the most recent swing highs/lows?
+
+**Produce an entry/exit table for each trade idea:**
+
+| Field | Detail |
+|-------|--------|
+| **Ticker** | Stock symbol |
+| **Direction** | Long / Short |
+| **Current Price** | Latest |
+| **Optimal Entry** | Best price zone to initiate (for shorts: rally into resistance; for longs: pullback to support) |
+| **Entry Rationale** | Why this level? (e.g., "200 SMA + prior breakdown level + high volume node") |
+| **Target 1** | First profit-taking level with rationale |
+| **Target 2** | Extended target with rationale |
+| **Stop Loss** | Invalidation level with rationale |
+| **Key Support Levels** | List 3-5 levels below current price with significance |
+| **Key Resistance Levels** | List 3-5 levels above current price with significance |
+
+---
+
+## Stage 7: Options Strategy
+
+For each top trade idea, recommend an optimal options strategy based on current market conditions.
+
+**Data gathering (use yfinance via Python or WebSearch):**
+
+```python
+import yfinance as yf
+ticker = yf.Ticker("SYMBOL")
+
+# Get all available expiration dates
+expirations = ticker.options
+
+# Get options chain for a specific expiration
+chain = ticker.option_chain("YYYY-MM-DD")
+calls = chain.calls  # DataFrame with strike, lastPrice, bid, ask, volume, openInterest, impliedVolatility
+puts = chain.puts    # Same structure
+
+# Key columns to analyze:
+# - impliedVolatility: current IV for each strike
+# - openInterest: liquidity indicator
+# - volume: recent trading activity
+# - bid/ask spread: execution cost
+```
+
+**Analysis steps:**
+
+1. **IV Assessment:**
+   - Calculate average IV across ATM options for the nearest monthly expiration
+   - Compare to historical IV (IV rank / IV percentile if available via WebSearch)
+   - Classify: **High IV** (IV rank >50%) → favor selling premium / spreads; **Low IV** (IV rank <50%) → favor buying outright options
+
+2. **Expiration Selection:**
+   - **Default preference: longer-dated options.** Target ~1 year out to expiry as the default. Minimum 6 months out unless there is a strong reason for shorter duration (e.g., binary earnings event, catalyst with a hard deadline).
+   - For earnings plays with a specific date: use the expiration closest to (but after) the earnings date — this is an exception to the 6-month minimum.
+   - For thesis plays (multi-month timeline): use 6-12 months out to minimize theta decay and give the thesis time to develop.
+   - Prefer monthly expirations over weeklies for liquidity
+   - Check open interest — need at least 100+ OI at the target strike for reasonable fills
+
+3. **Strike Selection:**
+   - **Target the 30 delta or 50 delta** depending on the trade:
+     - **50 delta (ATM):** higher probability of profit, more expensive. Use when conviction is high and the target is a modest move.
+     - **30 delta (OTM):** cheaper premium, more leverage, lower probability. Use when the target price is significantly away from current price and you want asymmetric payoff.
+   - Use the entry/exit levels from Stage 6 to cross-reference — the strike should align with a meaningful technical level where possible.
+   - **For spreads:** long strike at 50 delta (ATM), short strike near target or at 30 delta on the opposite side.
+   - Check bid/ask spread — avoid strikes where spread >10% of option price.
+   - When options are expensive (high IV), the 30 delta strike is preferred to reduce absolute premium at risk.
+
+4. **Strategy Selection Decision Tree:**
+
+   ```
+   IF IV is HIGH (IV rank >50%):
+     IF directional conviction is HIGH:
+       → Debit spread (bull call spread / bear put spread)
+       → Rationale: reduces cost basis, caps upside but limits IV crush damage
+     IF directional conviction is MEDIUM:
+       → Credit spread (sell the side you're against)
+       → Rationale: collect premium, time decay works for you
+     IF playing a catalyst with defined timeline:
+       → Calendar spread or diagonal
+       → Rationale: sell near-term elevated IV, buy longer-dated
+
+   IF IV is LOW (IV rank <50%):
+     IF directional conviction is HIGH:
+       → Outright calls or puts
+       → Rationale: cheap premium, full upside exposure
+     IF directional conviction is MEDIUM:
+       → Outright but smaller size, or debit spread for risk management
+   ```
+
+5. **Position Sizing Guidance:**
+   - Max risk per trade: 2-5% of portfolio
+   - For spreads: max risk = net debit paid (or max loss on credit spread)
+   - For outright options: assume 100% loss of premium as worst case
+
+**Produce an options strategy table for each trade idea:**
+
+| Field | Detail |
+|-------|--------|
+| **Ticker** | Stock symbol |
+| **Direction** | Bullish / Bearish |
+| **Strategy** | e.g., "Bear put spread" / "Outright puts" / "Bull call spread" |
+| **Why This Strategy** | 1-2 sentences explaining the IV/conviction logic |
+| **Expiration** | Specific date (and why) |
+| **Long Strike** | Strike price (with current delta if available) |
+| **Short Strike** | Strike price (if spread; "N/A" if outright) |
+| **Estimated Cost** | Net debit per contract (or net credit received) |
+| **Max Profit** | Per contract |
+| **Max Loss** | Per contract |
+| **Breakeven** | Price at expiration |
+| **Open Interest (Long)** | OI at long strike |
+| **Open Interest (Short)** | OI at short strike |
+| **IV (ATM)** | Current implied volatility |
+| **IV Assessment** | High/Low + reasoning |
+| **Suggested Contracts** | Number of contracts for ~$X risk (reference 2-5% portfolio guideline) |
+
+---
+
+## Stage 8: Risk/Reward P&L Scenarios
+
+For each recommended options strategy, calculate concrete P&L outcomes at various price targets assuming a **~$2,000 max investment** (increase if cost per contract exceeds $20).
+
+**Calculation method:**
+
+1. **Determine position size:**
+   - Budget: ~$2,000 (adjust up if single contract costs >$2,000)
+   - Contracts = floor($2,000 / cost per contract)
+   - Total cost = contracts × cost per contract
+
+2. **For vertical spreads (debit spreads):**
+   - At any stock price at expiration, spread value = max(0, min(long_strike - stock_price, spread_width)) for puts, or max(0, min(stock_price - long_strike, spread_width)) for calls
+   - P&L = (spread value - cost per contract) × contracts × 100
+   - P&L % = P&L / total cost × 100
+
+3. **For outright options:**
+   - At expiration, option value = max(0, strike - stock_price) for puts, or max(0, stock_price - strike) for calls
+   - P&L = (option value - cost per contract) × contracts × 100
+
+4. **Price targets to evaluate:**
+   - **Max loss scenario** (stock moves against you past stop loss)
+   - **Breakeven** (where P&L = $0)
+   - **Target 1** from Stage 6 (partial profit level)
+   - **Target 2** from Stage 6 (full thesis payoff)
+   - **Max profit scenario** (stock at or beyond short strike for spreads)
+   - **Tail scenario** (thesis overperforms — e.g., SEC action, restatement)
+
+**Produce a P&L scenario table:**
+
+| Scenario | Stock Price | Spread Value | P&L ($) | P&L (%) | R:R vs Max Loss |
+|----------|------------|-------------|---------|---------|-----------------|
+| Max Loss | [price] | $0.00 | -$X | -100% | — |
+| Breakeven | [price] | [cost] | $0 | 0% | 0:1 |
+| Target 1 | [price] | [value] | +$X | +X% | X:1 |
+| Target 2 | [price] | [value] | +$X | +X% | X:1 |
+| Max Profit | [price] | [width] | +$X | +X% | X:1 |
+| Tail Case | [price] | [width] | +$X | +X% | X:1 |
+
+Include a **summary line** at the bottom:
+- "Risking $X to make $Y-$Z across target scenarios (X:1 to Y:1 R:R)"
+
+---
+
 ## Output Format
 
 Present the final output as a clean, structured report with:
 1. **Executive Summary** — 3-4 bullet points on key takeaways
 2. **Top Picks Table** — equity ideas from Stage 5
-3. **Theme Deep-Dives** — expanded analysis for each major theme
-4. **Risk Matrix** — key risks ranked by probability and impact
-5. **Monitoring Checklist** — specific data points and dates to watch
-6. **Prior Research Cross-Reference** — how this relates to existing vault theses
+3. **Technical Levels** — entry/exit analysis from Stage 6
+4. **Options Strategy** — recommended structures from Stage 7
+5. **P&L Scenarios** — risk/reward at each price target from Stage 8
+6. **Theme Deep-Dives** — expanded analysis for each major theme
+7. **Risk Matrix** — key risks ranked by probability and impact
+8. **Monitoring Checklist** — specific data points and dates to watch
+9. **Prior Research Cross-Reference** — how this relates to existing vault theses
 
 Be specific. Use real numbers. Cite sources where possible. No hedging language — take a view and defend it.
 
@@ -181,3 +362,11 @@ _This section captures operational learnings. Update after each run._
 - **Full transcript was essential** — the video was a 1hr livestream with ~1,400 lines of transcript covering energy, crypto, tech, and macro. Reading the full transcript (not summarizing) captured nuances like specific price levels, order blocks, and risk management approaches.
 - **Crypto signals were valuable context** — even though the skill focuses on equities, the crypto analysis provided macro sentiment context (bearish BTC = risk-off environment supporting energy/commodity thesis).
 - **Save to vault immediately** — don't wait for user to ask. The research report is the deliverable and should be persisted automatically.
+
+### Run 2 (2026-03-17): Muddy Waters — SOFI Short Report (PDF)
+- **PDF extraction:** The `Read` tool can read PDFs directly with the `pages` parameter (max 20 pages per request). For large PDFs (28 pages), read in chunks: pages "1-20" then "21-28". This is the simplest and preferred approach.
+- **`pdfplumber` as fallback:** If the Read tool fails on a PDF (e.g., poppler not installed), use `python3 -c "import pdfplumber; ..."` to extract text. Install with `pip install pdfplumber` if needed.
+- **Short-seller reports are dense:** A 28-page MW report contains ~15,000 words of forensic accounting. Extract the EBITDA bridge table and key allegations first — these are the skeleton for the entire analysis.
+- **Rating agency corroboration is key signal:** For accounting fraud allegations, check if rating agencies (Fitch, DBRS, Moody's, S&P) have independently moved in the same direction as the short thesis. This is the strongest external validation.
+- **Confidence calibration for shorts:** Short-seller reports warrant medium confidence by default unless: (a) the short seller is covering their own position (reduces conviction), (b) the auditor has already signed off (reduces conviction), or (c) regulators have already acted (increases conviction).
+- **Cross-reference with vault:** Always check if the new thesis conflicts with or extends existing positions/theses in the vault. The SOFI short was a new idea with no conflicts.
