@@ -2,7 +2,7 @@
 
 Usage:
     poetry run python src/research_pipeline.py --transcript path/to/transcript.txt
-    poetry run python src/research_pipeline.py --transcript path/to/transcript.txt --model claude-sonnet-4-6
+    poetry run python src/research_pipeline.py --transcript path/to/transcript.txt --model qwen-3.5-9b
 """
 
 import argparse
@@ -103,19 +103,23 @@ def display_results(final_state: dict):
         console.print()
 
         if equity_ideas.get("top_picks"):
-            console.print(Panel(
-                " | ".join(equity_ideas["top_picks"]),
-                title="Top Picks",
-                style="bold green",
-            ))
+            console.print(
+                Panel(
+                    " | ".join(equity_ideas["top_picks"]),
+                    title="Top Picks",
+                    style="bold green",
+                )
+            )
             console.print()
 
         if equity_ideas.get("portfolio_construction_notes"):
-            console.print(Panel(
-                equity_ideas["portfolio_construction_notes"],
-                title="Portfolio Construction Notes",
-                style="blue",
-            ))
+            console.print(
+                Panel(
+                    equity_ideas["portfolio_construction_notes"],
+                    title="Portfolio Construction Notes",
+                    style="blue",
+                )
+            )
 
     # Save full output
     output_path = "research_output.json"
@@ -124,7 +128,7 @@ def display_results(final_state: dict):
     console.print(f"\nFull output saved to [bold]{output_path}[/bold]")
 
 
-def run_research_pipeline(transcript: str, model_name: str = "claude-sonnet-4-6", model_provider: str = "Anthropic", show_reasoning: bool = False):
+def run_research_pipeline(transcript: str, model_name: str = "qwen-3.5-9b", model_provider: str = "LM Studio", show_reasoning: bool = False):
     """Run the full 5-stage research pipeline on a transcript."""
     progress.start()
 
@@ -132,15 +136,17 @@ def run_research_pipeline(transcript: str, model_name: str = "claude-sonnet-4-6"
         workflow = create_research_workflow()
         agent = workflow.compile()
 
-        final_state = agent.invoke({
-            "messages": [HumanMessage(content="Analyze this transcript and generate equity ideas.")],
-            "data": {"transcript": transcript},
-            "metadata": {
-                "show_reasoning": show_reasoning,
-                "model_name": model_name,
-                "model_provider": model_provider,
-            },
-        })
+        final_state = agent.invoke(
+            {
+                "messages": [HumanMessage(content="Analyze this transcript and generate equity ideas.")],
+                "data": {"transcript": transcript},
+                "metadata": {
+                    "show_reasoning": show_reasoning,
+                    "model_name": model_name,
+                    "model_provider": model_provider,
+                },
+            }
+        )
 
         display_results(final_state)
         return final_state
@@ -152,8 +158,8 @@ def run_research_pipeline(transcript: str, model_name: str = "claude-sonnet-4-6"
 def main():
     parser = argparse.ArgumentParser(description="Research Pipeline: From Podcast Signal to Equity Ideas")
     parser.add_argument("--transcript", type=str, required=True, help="Path to transcript file or raw text")
-    parser.add_argument("--model", type=str, default="claude-sonnet-4-6", help="LLM model to use (default: claude-sonnet-4-6)")
-    parser.add_argument("--provider", type=str, default="Anthropic", help="LLM provider (default: Anthropic)")
+    parser.add_argument("--model", type=str, default="qwen-3.5-9b", help="LLM model to use (default: qwen-3.5-9b)")
+    parser.add_argument("--provider", type=str, default="LM Studio", help="LLM provider (default: LM Studio)")
     parser.add_argument("--show-reasoning", action="store_true", help="Show detailed reasoning from each stage")
     parser.add_argument("--output", type=str, default="research_output.json", help="Output file path (default: research_output.json)")
     args = parser.parse_args()
@@ -168,11 +174,13 @@ def main():
         # Treat as raw text if not a file
         console.print(f"Using provided text as transcript ({len(transcript)} chars)")
 
-    console.print(Panel(
-        f"Model: {args.model} | Provider: {args.provider}",
-        title="Research Pipeline Configuration",
-        style="bold blue",
-    ))
+    console.print(
+        Panel(
+            f"Model: {args.model} | Provider: {args.provider}",
+            title="Research Pipeline Configuration",
+            style="bold blue",
+        )
+    )
     console.print()
 
     run_research_pipeline(

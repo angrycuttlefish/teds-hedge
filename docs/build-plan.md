@@ -123,9 +123,9 @@ Implement the 5-stage AI Research Skill Architecture as a new pipeline in the ex
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| LLM Provider | Anthropic (API key) | Best models for financial analysis |
+| LLM Provider | LM Studio (local) | Free, no API key, runs Qwen 3.5 9B locally |
 | Orchestration | LangGraph | Already used in repo |
-| Model | claude-sonnet-4-6 | Latest Sonnet — best balance of speed/quality |
+| Model | qwen-3.5-9b (LM Studio) | Free local model, no API costs |
 | Market Data | yfinance | Free, no API key needed, covers stocks + options |
 | Database | DuckDB | Fast local analytics DB, zero config, SQL interface |
 | Input Sources | YouTube (video+transcript), Substack, PDF | Primary content formats for research workflow |
@@ -140,13 +140,12 @@ Implement the 5-stage AI Research Skill Architecture as a new pipeline in the ex
 ## Environment Setup
 
 ### Required
-```bash
-# Add to .env — get key at https://console.anthropic.com
-ANTHROPIC_API_KEY=sk-ant-...
-```
+- LM Studio installed and running with Qwen 3.5 9B loaded
+- No API key needed — uses local OpenAI-compatible API at `http://localhost:1234/v1`
 
 ### Optional
 ```bash
+ANTHROPIC_API_KEY=sk-ant-...    # For Anthropic Claude models
 FINANCIAL_DATASETS_API_KEY=...  # Legacy, yfinance preferred
 ```
 

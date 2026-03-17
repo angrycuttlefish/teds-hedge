@@ -1,5 +1,10 @@
 [
   {
+    "display_name": "Qwen 3.5 9B (LM Studio)",
+    "model_name": "qwen-3.5-9b",
+    "provider": "LM Studio"
+  },
+  {
     "display_name": "Claude Sonnet 4.6",
     "model_name": "claude-sonnet-4-6",
     "provider": "Anthropic"

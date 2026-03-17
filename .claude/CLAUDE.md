@@ -108,7 +108,7 @@ poetry run pytest
 | Layer | Technology |
 |-------|-----------|
 | LLM Orchestration | LangGraph, LangChain |
-| LLM Provider (default) | Anthropic Claude Sonnet 4.6 |
+| LLM Provider (default) | LM Studio (Qwen 3.5 9B local) |
 | Market Data | yfinance (stocks, options, fundamentals) |
 | Database | DuckDB (local analytics, research persistence) |
 | Backend | FastAPI, SQLAlchemy, Alembic |
@@ -122,15 +122,15 @@ poetry run pytest
 
 ## LLM Configuration
 
-### Anthropic Claude Sonnet 4.6 (Default)
-The pipeline defaults to `claude-sonnet-4-6` via the Anthropic API.
+### LM Studio + Qwen 3.5 9B (Default)
+The pipeline defaults to `qwen-3.5-9b` served locally via LM Studio's OpenAI-compatible API at `http://localhost:1234/v1`. No API key needed — just have LM Studio running with the model loaded.
 
 ```bash
-# Add to .env — get your key at https://console.anthropic.com
-ANTHROPIC_API_KEY=sk-ant-...
+# Optional: override the default LM Studio URL in .env
+# LM_STUDIO_BASE_URL=http://localhost:1234/v1
 ```
 
-Other providers (OpenAI, Groq, etc.) are also supported — pass `--model` and `--provider` at the CLI.
+Other providers (Anthropic, OpenAI, Groq, etc.) are also supported — pass `--model` and `--provider` at the CLI.
 
 ### Agent LLM calls
 All agent LLM calls go through `src/utils/llm.py:call_llm()` which handles:
@@ -205,10 +205,12 @@ Zero-config embedded analytics database for persisting research runs.
 
 ## Environment Variables
 
-Required in `.env`:
-- `ANTHROPIC_API_KEY` — Anthropic API key (get at https://console.anthropic.com)
+Required:
+- **LM Studio running** with Qwen 3.5 9B loaded (default, no API key needed)
 
-Optional:
+Optional in `.env`:
+- `LM_STUDIO_BASE_URL` — Override LM Studio URL (default: `http://localhost:1234/v1`)
+- `ANTHROPIC_API_KEY` — For Anthropic Claude models
 - `FINANCIAL_DATASETS_API_KEY` — For stock data (legacy, yfinance preferred)
 - `OPENAI_API_KEY`, `GROQ_API_KEY`, etc. — For other LLM providers
 
@@ -253,5 +255,5 @@ _This section grows over time. Add new entries as they are discovered._
 2. **youtube-transcript-api Python cap:** This package has an upper Python version bound (`<3.15`). Use `python = "<3.15"` marker in pyproject.toml.
 3. **LangGraph state merging:** TypedDict fields with `Annotated[..., merge_dicts]` do a shallow merge. Nested dicts must be handled carefully — don't rely on deep merge behaviour.
 4. **Pydantic v1 vs v2:** LangChain still references Pydantic v1 compatibility layer. On Python 3.14+ you'll see deprecation warnings. These are harmless but noisy.
-5. **`call_llm` defaults:** Always pass state and agent_name to `call_llm` to use the configured provider. Without them it falls back to the system default (currently claude-sonnet-4-6/Anthropic).
+5. **`call_llm` defaults:** Always pass state and agent_name to `call_llm` to use the configured provider. Without them it falls back to the system default (currently qwen-3.5-9b/LM Studio).
 6. **Claude Max setup tokens don't work with the API:** OAuth tokens from `claude setup-token` (sk-ant-oat01-...) only work with claude.ai's internal systems. They return 400 errors when used with `api.anthropic.com`. You must use a regular API key from https://console.anthropic.com.
