@@ -370,3 +370,10 @@ _This section captures operational learnings. Update after each run._
 - **Rating agency corroboration is key signal:** For accounting fraud allegations, check if rating agencies (Fitch, DBRS, Moody's, S&P) have independently moved in the same direction as the short thesis. This is the strongest external validation.
 - **Confidence calibration for shorts:** Short-seller reports warrant medium confidence by default unless: (a) the short seller is covering their own position (reduces conviction), (b) the auditor has already signed off (reduces conviction), or (c) regulators have already acted (increases conviction).
 - **Cross-reference with vault:** Always check if the new thesis conflicts with or extends existing positions/theses in the vault. The SOFI short was a new idea with no conflicts.
+
+### Run 3 (2026-03-17): LNG Supercycle — Magic Lines Substack (Email)
+- **Email as input source works well:** Use `gmail_search_messages` with subject keywords, then `gmail_read_message` to get full body text. Substack emails contain the complete article text in the email body — no need to WebFetch the URL.
+- **IV comparison drives strategy selection:** ET at 20% IV → outright calls. LNG at 37% → either works. EQT at 44% → lean spreads. The IV assessment is the single most important factor in choosing structure.
+- **Low IV is the best signal for outright options:** ET Jan 2027 $20 calls at $0.87 with 113,144 OI — this kind of cheap premium + massive liquidity is rare and should be highlighted as the top pick.
+- **Cross-referencing multiple reports from the same author adds conviction:** The Substack deep-dive on LNG structure + the YouTube livestream covering the same tickers with technical levels = higher confidence than either alone.
+- **Use `poetry run python3` for yfinance** — the system Python doesn't have it installed. Poetry environment does.
