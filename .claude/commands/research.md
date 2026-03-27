@@ -68,6 +68,31 @@ Transform raw signals into institutional-quality analysis. **Launch parallel res
 - Agent 1: Energy/commodity tickers
 - Agent 2: Tech/growth tickers
 - Agent 3: Macro context (Fed, geopolitics, indices, crypto)
+- Agent 4 (optional): **Social sentiment via last30days** — see below
+
+### Social Sentiment Enrichment (last30days)
+
+For major tickers and themes identified in Stage 1, run the `last30days` tool to gauge retail/social sentiment:
+
+```bash
+python3 ~/.claude/skills/last30days/scripts/last30days.py "<TICKER or THEME>" --emit context --quick --no-native-web
+```
+
+**Use `--no-native-web`** since the research skill already does its own web search — last30days adds value from Reddit, X, YouTube, HackerNews, Bluesky, TruthSocial, and Polymarket.
+
+**What to extract from last30days output:**
+- **Retail sentiment direction** — Is Reddit/X bullish or bearish? How strong is the consensus?
+- **Crowding signal** — If sentiment is unanimously one-sided, flag it as a contrarian indicator (crowded trades reverse)
+- **Community DD** — Any substantive analysis from r/wallstreetbets, r/options, r/investing, or finance Twitter that adds data points not found in institutional sources
+- **Polymarket odds** — For binary catalysts (e.g., "Will X happen by Y date?"), Polymarket prediction markets provide implied probabilities
+- **YouTube creator consensus** — What are finance YouTubers saying? Useful for gauging retail positioning
+
+**When to use last30days:**
+- **Always** for individual ticker research (e.g., `/research FNMA`)
+- **Selectively** for theme research (e.g., run it on "LNG natural gas" but not on every sub-ticker)
+- **Skip** when the input is a specific article/PDF being analyzed — social sentiment on the article itself is less useful than on the underlying tickers
+
+**Integration into the report:** Add a "Social Sentiment" subsection under each theme deep-dive, noting: sentiment direction, crowding level (consensus/divided/contrarian), and any notable community-sourced data points.
 
 For each major theme or company from Stage 1, research:
 1. **Bull case** — strongest argument for upside, with specific drivers
@@ -377,3 +402,11 @@ _This section captures operational learnings. Update after each run._
 - **Low IV is the best signal for outright options:** ET Jan 2027 $20 calls at $0.87 with 113,144 OI — this kind of cheap premium + massive liquidity is rare and should be highlighted as the top pick.
 - **Cross-referencing multiple reports from the same author adds conviction:** The Substack deep-dive on LNG structure + the YouTube livestream covering the same tickers with technical levels = higher confidence than either alone.
 - **Use `poetry run python3` for yfinance** — the system Python doesn't have it installed. Poetry environment does.
+
+### Run 4 (2026-03-27): Fannie Mae / Freddie Mac — GSE Privatization (Ticker Research)
+- **OTC stocks have no listed options:** FNMA and FMCC trade on OTC Pink Sheets (delisted from NYSE in 2008). The OCC does not list standardized options for OTC-only stocks. Verified across Unusual Whales, Nasdaq, Barchart. When options are unavailable, pivot to preferred stock analysis as the leveraged alternative.
+- **Preferred stocks as options substitute:** For companies with multiple preferred share classes (like GSEs with 15+ series each), rank them by: (1) discount to par, (2) coupon rate, (3) fixed vs variable. The deepest discount + highest fixed coupon = best risk/reward.
+- **Binary catalyst plays need special treatment:** When the thesis is entirely dependent on a single binary event (privatization, FDA approval, merger), confidence should reflect the probability of the event, not the quality of the thesis. A great thesis with 30% event probability = 30% confidence.
+- **Death cross pattern (50-day below 200-day MA) is a useful timing signal:** For binary plays, a death cross means the market is losing faith in the catalyst. Can be a contrarian entry signal if the fundamentals haven't changed.
+- **Warrant dilution risk must be explicitly modeled:** When a government or large holder has warrants (like Treasury's 79.9% on FNMA), the common stock target must account for dilution. Preferreds are NOT diluted — this changes the vehicle recommendation.
+- **last30days integration added:** The social sentiment tool adds value for retail positioning signals — especially useful for meme-adjacent stocks like FNMA where Reddit/X sentiment can move prices.
